@@ -39,7 +39,7 @@ WHERE CAST(rating AS TEXT) NOT LIKE '%.5'
 
 --Round the ratings in the playstore
 /*
-SELECT ROUND((FLOOR(rating*2)/2), 1) AS test
+SELECT ROUND((FLOOR(rating*2)/2), 1) AS clean_play_rating
 FROM play_store_apps
 WHERE rating IS NOT NULL
 ORDER BY test DESC
@@ -52,3 +52,5 @@ ORDER BY test DESC
 SELECT CAST(REPLACE(price,'$','') AS NUMERIC) AS clean_play_price
 FROM play_store_apps
 */
+
+WITH 
