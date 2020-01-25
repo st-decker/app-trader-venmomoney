@@ -53,4 +53,30 @@ SELECT CAST(REPLACE(price,'$','') AS NUMERIC) AS clean_play_price
 FROM play_store_apps
 */
 
-WITH 
+--Create a clean playstore CTE
+WITH cp AS (
+	SELECT 
+ 		name AS cpn,
+		CAST(REPLACE(price,'$','') AS NUMERIC) AS cpp,
+ 		ROUND((FLOOR(rating*2)/2), 1) AS cpr,
+ 		genres AS cpg
+ 	FROM play_store_apps
+	GROUP BY cpn, cpp, cpr, cpg
+)
+
+--Compare the CTE with app_store_apps
+SELECT
+	cp.cpn,
+	a.name,
+	cp.cpp,
+	a.price,
+	cp.cpr,
+	a.rating,
+	cp.cpg,
+	a.primary_genre
+FROM cp
+INNER JOIN app_store_apps AS a
+ON cp.cpn = a.name
+
+
+	
