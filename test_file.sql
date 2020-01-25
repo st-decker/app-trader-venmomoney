@@ -54,6 +54,7 @@ FROM play_store_apps
 */
 
 --Create a clean playstore CTE
+/*
 WITH cp AS (
 	SELECT 
  		name AS cpn,
@@ -61,10 +62,17 @@ WITH cp AS (
  		ROUND((FLOOR(rating*2)/2), 1) AS cpr,
  		genres AS cpg
  	FROM play_store_apps
+	WHERE rating IS NOT NULL
 	GROUP BY cpn, cpp, cpr, cpg
 )
+*/
+
+--Create a clean appstore CTE
+
 
 --Compare the CTE with app_store_apps
+--Some rating differences, some price differences
+/*
 SELECT
 	cp.cpn,
 	a.name,
@@ -77,6 +85,59 @@ SELECT
 FROM cp
 INNER JOIN app_store_apps AS a
 ON cp.cpn = a.name
+*/
 
+--How many have different ratings
+--181
+/*
+SELECT
+	cp.cpn,
+	a.name,
+	cp.cpp,
+	a.price,
+	cp.cpr,
+	a.rating
+FROM cp
+INNER JOIN app_store_apps AS a
+ON cp.cpn = a.name
+WHERE cp.cpr <> a.rating
+*/
 
-	
+--30 apps not the same price with rating => 4.0
+--DOUBLE CHECK WITH OUR FINAL TOP 10 TO SEE IF THESE ARE IN LIST
+/*
+SELECT
+	cp.cpn,
+	a.name,
+	cp.cpp,
+	a.price,
+	cp.cpr,
+	a.rating
+FROM cp
+INNER JOIN app_store_apps AS a
+ON cp.cpn = a.name
+WHERE cp.cpp <> a.price
+	AND cp.cpr >= 4.0 AND a.rating >=4.0
+*/
+WITH cp AS (
+		SELECT 
+			name AS cpn,
+			CAST(REPLACE(price,'$','') AS NUMERIC) AS cpp,
+			ROUND((FLOOR(rating*2)/2), 1) AS cpr,
+			genres AS cpg
+		FROM play_store_apps
+		WHERE rating IS NOT NULL
+		GROUP BY cpn, cpp, cpr, cpg
+),
+	endplay AS (
+		SELECT
+			CASE 
+				WHEN cpp = 0 THEN 10000
+				ELSE (cpp * 10000) END AS cpbuyprice,
+		FLOOR((cpr * 2) + 1) AS cplongevity,
+		(FLOOR((cpr * 2) + 1) *12) * 5000  AS cprevenue,
+		
+		FROM cp
+		ORDER BY cprevenue desc
+	)
+	SELECT * from endplay
