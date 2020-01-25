@@ -137,8 +137,8 @@ WITH cp AS (
 				ELSE (cpp * 10000) END AS cpbuyprice,
 		FLOOR((cpr * 2) + 1) AS cplongevity,
 		(FLOOR((cpr * 2) + 1) *12) * 5000  AS cprevenue,
-		(FLOOR((cpr * 2) + 1) *12) * 1000  AS cpmarketing
-		
+		(FLOOR((cpr * 2) + 1) *12) * 1000  AS cpmarketing,
+		cpg
 		FROM cp
 ),
 	endcp AS (
@@ -148,12 +148,22 @@ WITH cp AS (
 			cplongevity,
 			cprevenue,
 			cpmarketing,
-			((cpfunc.cprevenue - cpfunc.cpmarketing) - cpfunc.cpbuyprice) AS cpexpectedprofit
+			((cpfunc.cprevenue - cpfunc.cpmarketing) - cpfunc.cpbuyprice) AS cpexpectedprofit,
+			cpg
 	FROM cpfunc
 )
 
 --Greatest expected profit is $518,000
+--Need to differentiate apps
+/*
 SELECT * 
 FROM endcp 
 WHERE cpexpectedprofit >= 0 
 ORDER BY cpexpectedprofit DESC
+*/
+
+--Joined tables
+SELECT * 
+FROM endcp
+INNER JOIN app_store_apps
+ON endcp.cpn = app_store_apps.name;
