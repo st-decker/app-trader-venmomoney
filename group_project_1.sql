@@ -94,9 +94,13 @@ FROM play_store_apps;
 /*Most apps seem to be the same name within both, ratings can be different but it won't matter since we are only looking at
 4.5+ rating I think.
 */
+/*
 WITH playstore AS (
 	SELECT name, rating, content_rating, price, genres
 	FROM play_store_apps
 	WHERE rating IS NOT NULL
 	GROUP BY name, rating, content_rating, price, genres
 )
+*/
+
+
