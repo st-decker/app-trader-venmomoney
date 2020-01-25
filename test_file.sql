@@ -129,15 +129,31 @@ WITH cp AS (
 		WHERE rating IS NOT NULL
 		GROUP BY cpn, cpp, cpr, cpg
 ),
-	endplay AS (
+	cpfunc AS (
 		SELECT
+		cpn,
 			CASE 
-				WHEN cpp = 0 THEN 10000
+				WHEN cpp BETWEEN 0 AND 1 THEN 10000
 				ELSE (cpp * 10000) END AS cpbuyprice,
 		FLOOR((cpr * 2) + 1) AS cplongevity,
 		(FLOOR((cpr * 2) + 1) *12) * 5000  AS cprevenue,
+		(FLOOR((cpr * 2) + 1) *12) * 1000  AS cpmarketing
 		
 		FROM cp
-		ORDER BY cprevenue desc
-	)
-	SELECT * from endplay
+),
+	endcp AS (
+		SELECT
+			cpn,
+			cpbuyprice,
+			cplongevity,
+			cprevenue,
+			cpmarketing,
+			((cpfunc.cprevenue - cpfunc.cpmarketing) - cpfunc.cpbuyprice) AS cpexpectedprofit
+	FROM cpfunc
+)
+
+--Greatest expected profit is $518,000
+SELECT * 
+FROM endcp 
+WHERE cpexpectedprofit >= 0 
+ORDER BY cpexpectedprofit DESC
