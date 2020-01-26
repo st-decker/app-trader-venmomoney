@@ -190,10 +190,9 @@ WITH cp AS (
 			genre
 	FROM cafunc
 )
-SELECT caexpectedprofit from endca
-
-
+SELECT caexpectedprofit FROM endca ORDER BY caexpectedprofit DESC
 --Greatest expected profit is $518,000 for only cleaned play store table
+--Greatest expected profit is also $518,000 for app store table
 --Need to differentiate apps. Explore what will make some stand out ie review_count, content_rating, genre
 /*
 SELECT * 
