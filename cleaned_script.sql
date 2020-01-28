@@ -162,6 +162,14 @@ WITH clean_play AS (
 --Kept switching ORDER BY * DESC and examined apps based on average_rating, content_rating, genre
 
 
+SELECT
+	a.name,
+	app_expected_profit + play_expected_profit AS joined_expected_profit
+FROM app_table AS a
+INNER JOIN play_table as p
+ON a.name = p.name
+ORDER BY joined_expected_profit DESC
+/*
 SELECT 
 	a.name,
 	app_expected_profit + play_expected_profit AS joined_expected_profit,
@@ -175,3 +183,4 @@ ON a.name = p.name
 WHERE (a.rating + p.rating) / 2 >= 4.5
 	AND genre <> 'Games'
 ORDER BY joined_expected_profit DESC
+*/
