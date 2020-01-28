@@ -126,11 +126,12 @@ WITH cp AS (
 			name,
 			CAST(REPLACE(price,'$','') AS NUMERIC) AS cpp,
 			ROUND((FLOOR(rating*2)/2), 1) AS cpr,
-			CAST(REPLACE(REPLACE(install_count,'+',''),',','') AS NUMERIC) AS cpic,
-			genres AS genre
+			CAST(REPLACE(REPLACE(install_count,'+',''),',','') AS NUMERIC) AS cp_install,
+			genres AS genre,
+			review_count
 		FROM play_store_apps
 		WHERE rating IS NOT NULL
-		GROUP BY name, cpp, cpr, cpic, genre
+		GROUP BY name, cpp, cpr, cp_install, genre, review_count
 ),
 	cpfunc AS (
 		SELECT
@@ -142,19 +143,21 @@ WITH cp AS (
 		(FLOOR((cpr * 2) + 1) *12) * 5000  AS cprevenue,
 		(FLOOR((cpr * 2) + 1) *12) * 1000  AS cpmarketing,
 		genre,
-		cpic
+		review_count,
+		cp_install
 		FROM cp
 ),
 	endcp AS (
 		SELECT
 			name,
 			cpbuyprice,
-			cplongevity,
+			cplongevity ,
 			cprevenue,
 			cpmarketing,
 			((cpfunc.cprevenue - cpfunc.cpmarketing) - cpfunc.cpbuyprice) AS cpexpectedprofit,
 			genre,
-			cpic
+			review_count,
+			cp_install
 	FROM cpfunc
 ),
 	ca AS (
@@ -176,6 +179,7 @@ WITH cp AS (
 		FLOOR((rating * 2) + 1) AS calongevity,
 		(FLOOR((rating * 2) + 1) *12) * 5000  AS carevenue,
 		(FLOOR((rating * 2) + 1) *12) * 1000  AS camarketing,
+		rating,
 		genre
 		FROM ca	
 ), 
@@ -187,12 +191,57 @@ WITH cp AS (
 			carevenue,
 			camarketing,
 			((cafunc.carevenue - cafunc.camarketing) - cafunc.cabuyprice) AS caexpectedprofit,
-			genre
+			genre,
+			rating
 	FROM cafunc
 )
-SELECT caexpectedprofit FROM endca ORDER BY caexpectedprofit DESC
+/*
+	 combined_clean_table AS (
+		SELECT
+			a.name AS appname,
+			a.cabuyprice,
+			a.calongevity,
+			a.carevenue,
+			a.camarketing,
+			a.caexpectedprofit,
+			a.genre,
+			a.rating,
+			p.name AS playname,
+			p.cpbuyprice,
+			p.cplongevity ,
+			p.cprevenue,
+			p.cpmarketing,
+			p.cpexpectedprofit,
+			p.genre,
+			p.review_count,
+			p.cp_install
+		FROM endcp AS p
+		INNER JOIN endca AS a
+		ON p.name = a.name
+), 
+	deliverables AS (
+		SELECT 
+			(cpbuyprice + cabuyprice) AS combined_buyprice,
+			(cpmarketing + camarketing) AS combined_marketing,
+			(cprevenue + carevenue) AS combined_revenue,
+			(cpexpectedprofit + caexpectedprofit) AS combined_profit
+		FROM combined_clean_table
+)
+*/
+
+--Combined table
+/*
+SELECT *
+FROM combined_clean_table
+WHERE cpexpectedprofit > 0
+ORDER BY caexpectedprofit DESC
+*/
+
 --Greatest expected profit is $518,000 for only cleaned play store table
+--SELECT cpexpectedprofit FROM endcp ORDER BY cpexpectedprofit DESC
+
 --Greatest expected profit is also $518,000 for app store table
+--SELECT name, caexpectedprofit FROM endca ORDER BY caexpectedprofit DESC
 --Need to differentiate apps. Explore what will make some stand out ie review_count, content_rating, genre
 /*
 SELECT * 
@@ -201,17 +250,36 @@ WHERE cpexpectedprofit >= 0
 ORDER BY cpexpectedprofit DESC
 */
 
---Joined tables
---Max amount is $470000
+--Top 10 apps from joining the two cleaned tables
 /*
-SELECT DISTINCT(cpn), cpg, cpic,
-	CASE WHEN cpexpectedprofit <0 THEN NULL
-		 ELSE cpexpectedprofit END
-FROM endcp
-INNER JOIN app_store_apps AS a
-ON endcp.cpn = a.name
-INNER JOIN play_store_apps
-ON endcp.cpn = play_store_apps.name
-WHERE endcp.cpexpectedprofit >= 470000
-ORDER BY cpic DESC
+"PewDiePie's Tuber Simulator", "The Guardian","Egg, Inc.""Domino's Pizza USA"
+"Geometry Dash Lite", "ASOS", "Cytus", "Narcos: Cartel Wars", "YouTube Kids", "Smashy Road: Arena"
+
+Cytus, Narcos: Cartel Wars, YouTube Kids, Smashy Road: Arena are not making max profit from app store. Explore play store 
+apps making more
 */
+
+/*
+SELECT endca.name, endca.caexpectedprofit, endca.genre, endcp.genre
+FROM endca
+INNER JOIN endcp
+ON endca.name = endcp.name
+WHERE caexpectedprofit >0 and cpexpectedprofit >0
+ORDER BY caexpectedprofit DESC
+*/
+
+--test
+WITH test_play AS (
+		SELECT 
+			name,
+			CAST(REPLACE(price,'$','') AS NUMERIC) AS cleaned_price,
+			ROUND((FLOOR(rating*2)/2), 1) AS cleaned_rating,
+			CAST(REPLACE(REPLACE(install_count,'+',''),',','') AS NUMERIC) AS cleaned_install,
+			genres AS play_genre,
+			content_rating,
+			review_count,
+			rating
+		FROM play_store_apps
+		 --WHERE rating IS NOT NULL
+		GROUP BY name, play_price, play_rating, play_install, play_genre, content_rating, review_count, rating
+)
