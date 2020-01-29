@@ -164,7 +164,9 @@ WITH clean_play AS (
 
 SELECT
 	a.name,
-	app_expected_profit + play_expected_profit AS joined_expected_profit
+	app_expected_profit + play_expected_profit AS joined_expected_profit,
+	a.genre,
+	(a.rating + p.rating) / 2 AS average_rating
 FROM app_table AS a
 INNER JOIN play_table as p
 ON a.name = p.name
